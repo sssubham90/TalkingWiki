@@ -33,7 +33,7 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         searchText.setText(Query);
         content=(TextView)findViewById(R.id.content);
         try {
-            URL url= new URL("http://www.mediawiki.org/w/api.php?action=query&tiles="+Query+"&prop=revisions&rvprop=content&format=json");
+            URL url= new URL("http://www.mediawiki.org/w/api.php?action=query&titles="+Query+"&prop=revisions&rvprop=content&format=json");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             try
             {
