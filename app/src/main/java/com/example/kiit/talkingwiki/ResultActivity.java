@@ -99,8 +99,9 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         protected String doInBackground(String params[]) {
             String response="0";
             try {
-                URL url= new URL("http://www.mediawiki.org/w/api.php?action=query&titles="+params[0]+"&prop=revisions&rvprop=content&format=json");
+                URL url= new URL("http://www.mediawiki.org/w/api.php?action=raw&titles="+params[0]);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("User-Agent","yoyosssubham@gmail.com");
                 try {
                     InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                     response=slurp(in);
