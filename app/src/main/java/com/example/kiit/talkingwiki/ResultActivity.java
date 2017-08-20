@@ -6,6 +6,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
@@ -125,8 +126,24 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
 
         @Override
         protected void onPostExecute(String message) {
-            content.setWebViewClient(new WebViewClient());
+            content.setWebViewClient(new WebViewClient(){
+                @Override
+                public void onPageFinished(WebView view, String url)
+                {
+                    content.getSettings().setJavaScriptEnabled(true);
+                    content.evaluateJavascript("document.getElementsByTagName('p')[1].innerText;",
+                            new ValueCallback<String>() {
+                                @Override
+                                public void onReceiveValue(String value) {
+                                    tts.speak(value, TextToSpeech.QUEUE_FLUSH, null);
+                                }
+                            });
+                }
+
+            });
+            content.getSettings().setSupportZoom(true);
             content.loadUrl("https://en.wikipedia.org/wiki/"+Query);
+
             }
         private String slurp(InputStream is) throws IOException {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
