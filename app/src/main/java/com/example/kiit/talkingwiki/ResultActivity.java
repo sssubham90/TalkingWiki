@@ -20,7 +20,6 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
     private String Content;
     private TextToSpeech tts;
     private TextView content;
-    private HttpURLConnection conn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +34,7 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         content=(TextView)findViewById(R.id.content);
         try {
             URL url= new URL("http://www.mediawiki.org/w/api.php?action=query&tiles="+Query+"&prop=revisions&rvprop=content&format=json");
-            conn = (HttpURLConnection) url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             try
             {
                 Content=slurp(conn.getInputStream());
