@@ -6,6 +6,8 @@ import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -23,9 +25,9 @@ import static java.lang.Thread.sleep;
 
 public class ResultActivity extends AppCompatActivity implements TextToSpeech.OnInitListener{
     private String Query;
-    private String Content;
     private TextToSpeech tts;
-    private TextView content;
+    private WebView content;
+    private TextView searchText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +37,9 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         Intent intent=getIntent();
         if(intent.hasExtra("query"))
         Query=intent.getExtras().getString("query");
-        TextView searchText=(TextView)findViewById(R.id.search_text);
+        searchText=(TextView)findViewById(R.id.search_text);
         searchText.setText(Query);
-        content=(TextView)findViewById(R.id.content);
+        content=(WebView)findViewById(R.id.content);
         Connect connect=new Connect();
         connect.execute(Query);
     }
@@ -60,7 +62,7 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
     }
     private void speakOut() {
 
-        String text = content.getText().toString();
+        String text = searchText.getText().toString();
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
     public void respond(final String response) throws IOException {
@@ -71,7 +73,6 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
                     JSONObject reader;
                     try {
                         reader = new JSONObject(response);
-                        Content = reader.getString("Result");
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -124,7 +125,8 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
 
         @Override
         protected void onPostExecute(String message) {
-            content.setText(Content);
+            content.setWebViewClient(new WebViewClient());
+            content.loadUrl("https://en.wikipedia.org/wiki/"+Query);
             }
         private String slurp(InputStream is) throws IOException {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
