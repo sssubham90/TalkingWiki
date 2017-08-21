@@ -1,7 +1,8 @@
 package com.example.kiit.talkingwiki;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,19 +11,8 @@ import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Locale;
-import static java.lang.Thread.sleep;
+
 
 public class ResultActivity extends AppCompatActivity implements TextToSpeech.OnInitListener{
     private String Query;
@@ -41,9 +31,36 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         searchText=(TextView)findViewById(R.id.search_text);
         searchText.setText(Query);
         content=(WebView)findViewById(R.id.content);
-        Connect connect=new Connect();
-        connect.execute(Query);
-    }
+        final ProgressDialog progDailog;
+        Activity activity = this;
+        progDailog = ProgressDialog.show(activity, "Loading","Please wait...", true);
+        progDailog.setCancelable(false);
+        content.getSettings().setJavaScriptEnabled(true);
+        content.getSettings().setLoadWithOverviewMode(true);
+        content.getSettings().setUseWideViewPort(true);
+        content.setWebViewClient(new WebViewClient(){
+
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    progDailog.show();
+                    view.loadUrl(url);
+                    return true;
+                }
+                @Override
+                public void onPageFinished(WebView view, final String url) {
+                    progDailog.dismiss();
+                    content.evaluateJavascript("document.getElementsByTagName('p')[1].innerText;",
+                            new ValueCallback<String>() {
+                                @Override
+                                public void onReceiveValue(String value) {
+                                    tts.speak(value, TextToSpeech.QUEUE_FLUSH, null);
+                                }
+                            });
+                }
+            });
+        Query=Query.replace(" ","_");
+        content.loadUrl("https://en.m.wikipedia.org/wiki/"+Query);
+        }
     @Override
     public void onInit(int i) {
         if (i == TextToSpeech.SUCCESS) {
@@ -66,25 +83,6 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         String text = searchText.getText().toString();
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
-    public void respond(final String response) throws IOException {
-        try {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONObject reader;
-                    try {
-                        reader = new JSONObject(response);
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
     @Override
     public void onDestroy() {
         if (tts != null) {
@@ -92,68 +90,5 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
             tts.shutdown();
         }
         super.onDestroy();
-    }
-
-
-    private class Connect extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String params[]) {
-            String response="0";
-            try {
-                URL url= new URL("http://www.mediawiki.org/w/api.php?action=raw&titles="+params[0]);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestProperty("User-Agent","yoyosssubham@gmail.com");
-                try {
-                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                    response=slurp(in);
-                } finally {
-                    urlConnection.disconnect();
-                }
-
-            }
-            catch(Exception e) {
-                Log.e("ERROR", e.getMessage(), e);
-            }
-            try{
-                respond(response);
-            }
-            catch (Exception e){
-                Log.e("Developer",e.getMessage());
-            }
-            return response;
-        }
-
-        @Override
-        protected void onPostExecute(String message) {
-            content.setWebViewClient(new WebViewClient(){
-                @Override
-                public void onPageFinished(WebView view, String url)
-                {
-                    content.getSettings().setJavaScriptEnabled(true);
-                    content.evaluateJavascript("document.getElementsByTagName('p')[1].innerText;",
-                            new ValueCallback<String>() {
-                                @Override
-                                public void onReceiveValue(String value) {
-                                    tts.speak(value, TextToSpeech.QUEUE_FLUSH, null);
-                                }
-                            });
-                }
-
-            });
-            content.getSettings().setSupportZoom(true);
-            content.loadUrl("https://en.wikipedia.org/wiki/"+Query);
-
-            }
-        private String slurp(InputStream is) throws IOException {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
-            }
-            bufferedReader.close();
-            return stringBuilder.toString();
-        }
     }
 }
