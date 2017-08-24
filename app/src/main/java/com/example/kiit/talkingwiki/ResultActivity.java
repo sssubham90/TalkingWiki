@@ -7,9 +7,11 @@ import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import java.util.Locale;
 
@@ -19,6 +21,7 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
     private TextToSpeech tts;
     private WebView content;
     private TextView searchText;
+    private String Value;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,22 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
         content.getSettings().setJavaScriptEnabled(true);
         content.getSettings().setLoadWithOverviewMode(true);
         content.getSettings().setUseWideViewPort(true);
+        final ImageButton start=(ImageButton)findViewById(R.id.start);
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tts.speak(Value, TextToSpeech.QUEUE_FLUSH, null);
+            }
+        });
+        final ImageButton stop=(ImageButton)findViewById(R.id.stop);
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tts.stop();
+            }
+        });
+        start.setVisibility(View.GONE);
+        stop.setVisibility(View.GONE);
         content.setWebViewClient(new WebViewClient(){
 
                 @Override
@@ -48,12 +67,15 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
                 }
                 @Override
                 public void onPageFinished(WebView view, final String url) {
+                    start.setVisibility(View.VISIBLE);
+                    stop.setVisibility(View.VISIBLE);
                     progDailog.dismiss();
                     content.evaluateJavascript("document.getElementsByTagName('p')[1].innerText;",
                             new ValueCallback<String>() {
                                 @Override
                                 public void onReceiveValue(String value) {
-                                    tts.speak(value, TextToSpeech.QUEUE_FLUSH, null);
+                                    Value =value;
+                                    tts.speak(Value, TextToSpeech.QUEUE_FLUSH, null);
                                 }
                             });
                 }
