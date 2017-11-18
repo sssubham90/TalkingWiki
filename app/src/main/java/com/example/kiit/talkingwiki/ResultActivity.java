@@ -70,7 +70,7 @@ public class ResultActivity extends AppCompatActivity implements TextToSpeech.On
                     start.setVisibility(View.VISIBLE);
                     stop.setVisibility(View.VISIBLE);
                     progDailog.dismiss();
-                    content.evaluateJavascript("document.getElementsByTagName('p')[1].innerText;",
+                    content.evaluateJavascript("document.getElementsByTagName('p')[0].innerText+document.getElementsByTagName('p')[1].innerText;",
                             new ValueCallback<String>() {
                                 @Override
                                 public void onReceiveValue(String value) {
